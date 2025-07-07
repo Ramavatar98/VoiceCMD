@@ -28,8 +28,12 @@ jobs:
           npm install
 
       - name: Add Android Platform (Fixed Version)
-        # यहाँ हमने @latest की जगह एक स्थिर वर्ज़न @12.0.1 कर दिया है
         run: cordova platform add android@12.0.1
+
+      # --- यहाँ नया स्टेप जोड़ा गया है ---
+      - name: Install Android Build Tools
+        # यह कमांड बिल्ड के लिए जरूरी टूल 33.0.2 को इनस्टॉल करेगा
+        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2"
 
       - name: Build Android APK
         run: cordova build android --release -- -- --packageType=apk

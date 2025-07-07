@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
+    <link rel="stylesheet" type="text/css" href="css/index.css">
+    <title>Voice CMD</title>
+</head>
+<body>
+    <div class="app">
+        <h1>Voice CMD</h1>
+        <p>अपना कमांड बोलें...</p>
+        <p>उदाहरण: "शक्ति कैमरा खोलो"</p>
+        <div id="deviceready" class="blink">
+            <p class="event listening">Connecting to Device</p>
+            <p class="event received">Device is Ready</p>
+        </div>
+        <button id="startBtn">Start/Stop Listening</button>
+        <div id="status">Status: Idle</div>
+        <div id="result"><strong>आपने कहा:</strong> --</div>
+    </div>
+    <script src="cordova.js"></script>
+    <script src="js/index.js"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.example.voicecmd" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>VoiceCMD</name>
+    <description>A voice command app that works in the background.</description>
+    <author email="dev@cordova.apache.org" href="http://cordova.io">
+        Apache Cordova Team
+    </author>
+    <content src="index.html" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    
+    <!-- Permissions and Plugins -->
+    <plugin name="cordova-plugin-whitelist" spec="1" />
+    <plugin name="cordova-plugin-speechrecognition" spec="^3.0.0" />
+    <plugin name="cordova-plugin-background-mode" spec="^0.7.3" />
+    <plugin name="cordova-plugin-camera" spec="^6.0.0" />
+    <plugin name="cordova-plugin-device" spec="^2.1.0" />
+    
+    <platform name="android">
+        <allow-intent href="market:*" />
+        <preference name="AndroidXEnabled" value="true" />
+    </platform>
+</widget>

@@ -31,10 +31,12 @@ jobs:
         run: cordova platform add android@latest
 
       - name: Build Android APK
+        # यह रिलीज़ APK बनाएगा, जो बेहतर होता है
         run: cordova build android --release -- -- --packageType=apk
 
       - name: Upload APK
-        uses: actions/upload-artifact@v3
+        # यहाँ वर्ज़न v3 से v4 में बदल दिया गया है
+        uses: actions/upload-artifact@v4 # <-- यहाँ बदलाव किया गया है
         with:
           name: VoiceCMD-apk
           path: platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk

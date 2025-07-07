@@ -9,9 +9,9 @@
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
     
-    <!-- Permissions and Plugins -->
-    <plugin name="cordova-plugin-whitelist" spec="1" />
-    <plugin name="cordova-plugin-speechrecognition" spec="^3.0.0" />
+    <!-- प्लगइन्स -->
+    <!-- Whitelist प्लगइन हटा दिया गया है -->
+    <plugin name="cordova-plugin-speechrecognition" spec="^2.0.0" /> <!-- यहाँ वर्ज़न ठीक किया गया है -->
     <plugin name="cordova-plugin-background-mode" spec="^0.7.3" />
     <plugin name="cordova-plugin-camera" spec="^6.0.0" />
     <plugin name="cordova-plugin-device" spec="^2.1.0" />

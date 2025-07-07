@@ -17,7 +17,6 @@
       "android"
     ],
     "plugins": {
-      "cordova-plugin-whitelist": {},
       "cordova-plugin-speechrecognition": {},
       "cordova-plugin-background-mode": {},
       "cordova-plugin-camera": {},

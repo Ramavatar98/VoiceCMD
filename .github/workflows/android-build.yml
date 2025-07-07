@@ -30,16 +30,17 @@ jobs:
       - name: Add Android Platform (Fixed Version)
         run: cordova platform add android@12.0.1
 
-      # --- यहाँ नया स्टेप जोड़ा गया है ---
       - name: Install Android Build Tools
-        # यह कमांड बिल्ड के लिए जरूरी टूल 33.0.2 को इनस्टॉल करेगा
         run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2"
 
-      - name: Build Android APK
-        run: cordova build android --release -- -- --packageType=apk
+      # --- बिल्ड कमांड को सरल किया गया है (डीबग APK के लिए) ---
+      - name: Build Android Debug APK
+        run: cordova build android
 
+      # --- APK का सही रास्ता (डीबग वाला) ---
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: VoiceCMD-apk
-          path: platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk
+          name: VoiceCMD-debug-apk
+          # यह वही रास्ता है जो आपने बताया
+          path: platforms/android/app/build/outputs/apk/debug/app-debug.apk

@@ -17,7 +17,7 @@
       "android"
     ],
     "plugins": {
-      "cordova-plugin-speechrecognition": {},
+      "cordova-plugin-speechrecognition": "git+https://github.com/pbakondy/cordova-plugin-speechrecognition.git",
       "cordova-plugin-background-mode": {},
       "cordova-plugin-camera": {},
       "cordova-plugin-device": {},

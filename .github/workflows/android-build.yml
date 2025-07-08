@@ -22,15 +22,19 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Cordova and dependencies
-        run: |
-          npm install -g cordova
-          # Install all plugins from config.xml
-          cordova platform add android@12.0.1 --save
-          npm install
+      - name: Install Cordova
+        run: npm install -g cordova
 
-      - name: Install Android Build Tools
-        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2"
+      - name: Add Android Platform and Install Plugins
+        # यह config.xml से सभी प्लगइन्स को इंस्टॉल करेगा
+        run: cordova platform add android@12.0.1
+
+      # --- यहाँ मुख्य समाधान है ---
+      - name: FIX (Patch outdated Gradle files)
+        # यह कमांड सभी .gradle फ़ाइलों में पुराने 'compile(' को नए 'implementation(' से बदल देता है
+        run: |
+          find platforms/android -type f -name "*.gradle" -exec sed -i 's/compile(/implementation(/g' {} +
+          echo "Gradle files patched successfully."
 
       - name: Build Android Debug APK
         run: cordova build android

@@ -9,9 +9,9 @@
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
     
-    <!-- प्लगइन्स -->
-    <plugin name="cordova-plugin-speechrecognition" spec="^3.0.0" />
-    <plugin name="cordova-plugin-background-mode-fixed" spec="^0.7.5" />
+    <!-- प्लगइन्स (सही वर्ज़न के साथ) -->
+    <plugin name="cordova-plugin-speechrecognition" spec="^2.0.0" />
+    <plugin name="cordova-plugin-background-mode" spec="^0.7.3" /> <!-- आधिकारिक प्लगइन -->
     <plugin name="cordova-plugin-camera" spec="^6.0.0" />
     <plugin name="cordova-plugin-device" spec="^2.1.0" />
     <plugin name="cordova-open-native-settings" spec="^1.5.5" />

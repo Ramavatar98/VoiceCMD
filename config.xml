@@ -10,10 +10,12 @@
     <allow-intent href="https://*/*" />
     
     <!-- प्लगइन्स -->
-    <plugin name="cordova-plugin-speechrecognition" spec="^1.2.0" /> <!-- यहाँ सही वर्ज़न 1.2.0 कर दिया गया है -->
-    <plugin name="cordova-plugin-background-mode" spec="^0.7.3" />
+    <plugin name="cordova-plugin-speechrecognition" spec="^3.0.0" />
+    <plugin name="cordova-plugin-background-mode-fixed" spec="^0.7.5" />
     <plugin name="cordova-plugin-camera" spec="^6.0.0" />
     <plugin name="cordova-plugin-device" spec="^2.1.0" />
+    <plugin name="cordova-open-native-settings" spec="^1.5.5" />
+    <plugin name="cordova-plugin-local-notification" spec="^0.9.0-beta.2" />
     
     <platform name="android">
         <allow-intent href="market:*" />

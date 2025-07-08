@@ -18,9 +18,11 @@
     ],
     "plugins": {
       "cordova-plugin-speechrecognition": {},
-      "cordova-plugin-background-mode": {},
+      "cordova-plugin-background-mode-fixed": {},
       "cordova-plugin-camera": {},
-      "cordova-plugin-device": {}
+      "cordova-plugin-device": {},
+      "cordova-open-native-settings": {},
+      "cordova-plugin-local-notification": {}
     }
   }
 }

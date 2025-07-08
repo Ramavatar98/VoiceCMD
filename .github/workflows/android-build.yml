@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: '16'
 
-      - name: Setup Java
+      - name: Setup Java and Android SDK
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
@@ -26,15 +26,17 @@ jobs:
         run: npm install -g cordova
 
       - name: Add Android Platform and Install Plugins
-        # यह config.xml से सभी प्लगइन्स को इंस्टॉल करेगा
         run: cordova platform add android@12.0.1
 
-      # --- यहाँ मुख्य समाधान है ---
-      - name: FIX (Patch outdated Gradle files)
-        # यह कमांड सभी .gradle फ़ाइलों में पुराने 'compile(' को नए 'implementation(' से बदल देता है
+      - name: Patch outdated Gradle files
         run: |
           find platforms/android -type f -name "*.gradle" -exec sed -i 's/compile(/implementation(/g' {} +
           echo "Gradle files patched successfully."
+
+      # --- यहाँ गुम हुआ चरण है, जिसे वापस जोड़ा गया है ---
+      - name: Install required Android Build Tools
+        # यह त्रुटि संदेश द्वारा मांगे गए सटीक बिल्ड-टूल्स संस्करण को स्थापित करता है।
+        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2"
 
       - name: Build Android Debug APK
         run: cordova build android

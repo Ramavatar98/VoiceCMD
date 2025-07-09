@@ -16,32 +16,33 @@ jobs:
         with:
           node-version: '16'
 
-      - name: Setup Java
+      - name: Setup Java and Android SDK
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Cordova and dependencies
-        run: |
-          npm install -g cordova
-          npm install
+      - name: Install Cordova
+        run: npm install -g cordova
 
-      - name: Add Android Platform (Fixed Version)
+      - name: Add Android Platform and Install Plugins
         run: cordova platform add android@12.0.1
 
-      - name: Install Android Build Tools
+      - name: Patch outdated Gradle files
+        run: |
+          find platforms/android -type f -name "*.gradle" -exec sed -i 's/compile(/implementation(/g' {} +
+          echo "Gradle files patched successfully."
+
+      # --- यहाँ गुम हुआ चरण है, जिसे वापस जोड़ा गया है ---
+      - name: Install required Android Build Tools
+        # यह त्रुटि संदेश द्वारा मांगे गए सटीक बिल्ड-टूल्स संस्करण को स्थापित करता है।
         run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2"
 
-      # --- बिल्ड कमांड को सरल किया गया है (डीबग APK के लिए) ---
       - name: Build Android Debug APK
         run: cordova build android
 
-      # --- APK का सही रास्ता (डीबग वाला) ---
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: VoiceCMD-debug-apk
-          # यह वही रास्ता है जो आपने बताया
           path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
-          

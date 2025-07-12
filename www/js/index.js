@@ -1,7 +1,7 @@
 // --- Global State Variables ---
 let isListening = false;
 let hasMicPermission = false;
-const NOTIFICATION_ID = 1; // हमारी सूचना के लिए एक यूनिक ID
+const NOTIFICATION_ID = 1;
 
 // --- App Initialization ---
 document.addEventListener('deviceready', onDeviceReady, false);
@@ -10,23 +10,16 @@ function onDeviceReady() {
     console.log('Device is ready');
     document.getElementById('deviceready').classList.add('ready');
 
-    // --- अनुमतियों का सही क्रम ---
-    // 1. सूचनाएं -> 2. माइक्रोफ़ोन -> 3. बैटरी ऑप्टिमाइज़ेशन
+    // --- अनुमतियों का सरल क्रम ---
     requestNotificationPermission(() => {
-        checkAndRequestMicrophonePermission(() => {
-            // माइक्रोफ़ोन की अनुमति मिलने के बाद ही बैटरी ऑप्टिमाइज़ेशन के लिए पूछें
-            if (hasMicPermission) {
-                requestBatteryOptimizationPermission();
-            }
-        });
+        checkAndRequestMicrophonePermission();
     });
 
     // --- बैकग्राउंड मोड कॉन्फ़िगरेशन ---
     cordova.plugins.backgroundMode.setDefaults({
         title: 'Voice CMD is Active',
         text: 'Listening for your "शक्ति" commands.',
-        // 'type' को config.xml में सेट किया गया है, जो अधिक विश्वसनीय है
-        silent: true // हम अपनी कस्टम सूचना दिखाएंगे
+        silent: true
     });
     cordova.plugins.backgroundMode.enable();
     
@@ -55,50 +48,30 @@ function onDeviceReady() {
 function requestNotificationPermission(callback) {
     cordova.plugins.notification.local.hasPermission(granted => {
         if (granted) {
-            console.log('Notification permission already granted.');
             callback();
         } else {
-            cordova.plugins.notification.local.requestPermission(granted => {
-                console.log(`Notification permission granted: ${granted}`);
-                callback();
-            });
+            cordova.plugins.notification.local.requestPermission(() => callback());
         }
     });
 }
 
-function checkAndRequestMicrophonePermission(callback) {
+function checkAndRequestMicrophonePermission() {
     window.plugins.speechRecognition.hasPermission(
         granted => {
             if (granted) {
                 hasMicPermission = true;
-                console.log('Microphone permission is granted.');
             } else {
                 window.plugins.speechRecognition.requestPermission(
-                    () => { hasMicPermission = true; console.log('Microphone permission granted successfully.'); },
-                    () => { hasMicPermission = false; alert('Microphone permission is required for the app to work.'); }
+                    () => { hasMicPermission = true; },
+                    () => { hasMicPermission = false; alert('Microphone permission is required.'); }
                 );
             }
-            if (callback) callback();
         },
         err => console.error('Error checking mic permission: ' + err)
     );
 }
 
-function requestBatteryOptimizationPermission() {
-    cordova.plugins.PowerOptimization.isIgnoringBatteryOptimizations(
-        (isIgnoring) => {
-            if (!isIgnoring) {
-                alert('For the app to run reliably in the background, please allow it to ignore battery optimizations.');
-                cordova.plugins.PowerOptimization.requestOptimizations();
-            } else {
-                console.log('App is already ignoring battery optimizations.');
-            }
-        },
-        (error) => {
-            console.error('Failed to check battery optimization status: ' + error);
-        }
-    );
-}
+// **** बैटरी ऑप्टिमाइज़ेशन से संबंधित फंक्शन हटा दिया गया है ****
 
 
 // --- बाकी का लॉजिक पहले जैसा ही है ---
@@ -172,4 +145,4 @@ function updateNotification(text) {
 
 function clearNotification() {
     cordova.plugins.notification.local.clear(NOTIFICATION_ID);
-         }
+}

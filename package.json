@@ -24,7 +24,7 @@
       "cordova-plugin-device": {},
       "cordova-open-native-settings": {},
       "cordova-plugin-local-notification": {},
-      "cordova-plugin-power-optimization": "git+https://github.com/sneas/cordova-plugin-power-optimization.git"
+      "cordova-plugin-power-optimization": {}
     }
   }
 }

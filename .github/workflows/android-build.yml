@@ -25,23 +25,26 @@ jobs:
       - name: Install Cordova
         run: npm install -g cordova
 
-      # चरण 1: केवल एंड्रॉइड प्लेटफॉर्म जोड़ें
-      - name: Add Android Platform
+      # चरण 1: एंड्रॉइड प्लेटफॉर्म जोड़ें और सभी प्लगइन्स को डिस्क पर रखने दें
+      - name: Add Android Platform and Install Plugins
         run: cordova platform add android@12.0.1
 
-      # चरण 2: प्लगइन्स इंस्टॉल करें और हुक चलाएं (यह सबसे महत्वपूर्ण चरण है)
-      - name: Prepare Android Platform (Installs plugins and runs hooks)
-        run: cordova prepare android
+      # चरण 2: मैन्युअल रूप से समस्याग्रस्त Gradle फ़ाइलों को पैच करें (यह सबसे महत्वपूर्ण चरण है)
+      - name: Force Patch Gradle Files
+        run: |
+          echo "Patching Gradle files to replace 'compile(' with 'implementation('..."
+          find platforms/android -type f -name "*.gradle" -exec sed -i 's/compile(/implementation(/g' {} +
+          echo "Gradle files patched successfully."
 
-      # चरण 3: आवश्यक बिल्ड-टूल्स इंस्टॉल करें (सुरक्षित रहने के लिए)
+      # चरण 3: आवश्यक बिल्ड-टूल्स इंस्टॉल करें
       - name: Install required Android Build Tools
         run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2"
 
-      # चरण 4: अब APK बनाएं
+      # चरण 4: अब पैच की गई फ़ाइलों के साथ APK बनाएं
       - name: Build Android Debug APK
         run: cordova build android
 
-      # चरण 5: APK अपलोड करें
+      # चरण 5: सफल APK को अपलोड करें
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:

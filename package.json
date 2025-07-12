@@ -23,8 +23,8 @@
       "cordova-plugin-camera": {},
       "cordova-plugin-device": {},
       "cordova-open-native-settings": {},
-      "cordova-plugin-local-notification": {},
-      "cordova-plugin-power-optimization": {}
+      "cordova-plugin-local-notification": {}
+      // **** समस्याग्रस्त प्लगइन यहाँ से हटा दिया गया है ****
     }
   }
 }

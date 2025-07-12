@@ -1,21 +1,18 @@
-// --- Global State Variables ---
 let isListening = false;
 let hasMicPermission = false;
 const NOTIFICATION_ID = 1;
 
-// --- App Initialization ---
 document.addEventListener('deviceready', onDeviceReady, false);
 
 function onDeviceReady() {
     console.log('Device is ready');
     document.getElementById('deviceready').classList.add('ready');
 
-    // --- अनुमतियों का सरल क्रम ---
+    // सरल अनुमति प्रवाह
     requestNotificationPermission(() => {
         checkAndRequestMicrophonePermission();
     });
 
-    // --- बैकग्राउंड मोड कॉन्फ़िगरेशन ---
     cordova.plugins.backgroundMode.setDefaults({
         title: 'Voice CMD is Active',
         text: 'Listening for your "शक्ति" commands.',
@@ -27,7 +24,6 @@ function onDeviceReady() {
         if(isListening) { setTimeout(listenLoop, 500); }
     });
 
-    // --- UI बटन का लॉजिक ---
     const startBtn = document.getElementById('startBtn');
     startBtn.addEventListener('click', () => {
         if (isListening) {
@@ -43,14 +39,14 @@ function onDeviceReady() {
     });
 }
 
-// --- Permission Functions ---
-
 function requestNotificationPermission(callback) {
     cordova.plugins.notification.local.hasPermission(granted => {
-        if (granted) {
-            callback();
+        if (!granted) {
+            cordova.plugins.notification.local.requestPermission(granted => {
+                callback();
+            });
         } else {
-            cordova.plugins.notification.local.requestPermission(() => callback());
+            callback();
         }
     });
 }
@@ -71,11 +67,7 @@ function checkAndRequestMicrophonePermission() {
     );
 }
 
-// **** बैटरी ऑप्टिमाइज़ेशन से संबंधित फंक्शन हटा दिया गया है ****
-
-
-// --- बाकी का लॉजिक पहले जैसा ही है ---
-
+// बाकी का कोड वही है, बस PowerOptimization वाला फंक्शन हटा दिया गया है
 function startContinuousListening() {
     if (isListening || !hasMicPermission) return;
     isListening = true;

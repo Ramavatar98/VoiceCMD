@@ -23,6 +23,7 @@
       "cordova-plugin-camera": {},
       "cordova-plugin-device": {},
       "cordova-open-native-settings": {},
+      "cordova-plugin-power-optimization": {},
       "cordova-plugin-local-notification": {}
     }
   }

@@ -9,25 +9,23 @@
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
     
-    <!-- प्लगइन्स -->
-    <plugin name="cordova-plugin-androidx-adapter" spec="^1.1.3" />
-    <plugin name="cordova-plugin-speechrecognition" spec="https://github.com/pbakondy/cordova-plugin-speechrecognition.git" />
-    <plugin name="cordova-plugin-background-mode" spec="^0.7.3" />
-    <plugin name="cordova-plugin-camera" spec="^6.0.0" />
-    <plugin name="cordova-plugin-device" spec="^2.1.0" />
-    <plugin name="cordova-open-native-settings" spec="^1.5.5" />
+    <!-- प्लगइन्स (सरल और आधुनिक) -->
+    <plugin name="cordova-plugin-androidx-adapter" />
+    <plugin name="cordova-plugin-speechrecognition" />
+    <plugin name="cordova-plugin-background-mode" />
+    <plugin name="cordova-plugin-camera" />
+    <plugin name="cordova-plugin-device" />
+    <plugin name="cordova-open-native-settings" />
     <plugin name="cordova-plugin-local-notification" />
-    
-    <!-- **** समाधान यहाँ है: Power Optimization प्लगइन को GitHub से इंस्टॉल करें **** -->
-    <plugin name="cordova-plugin-power-optimization" spec="https://github.com/sneas/cordova-plugin-power-optimization.git" />
     
     <platform name="android">
         <allow-intent href="market:*" />
         <preference name="AndroidXEnabled" value="true" />
+        <preference name="android-minSdkVersion" value="24" />
+        <preference name="android-targetSdkVersion" value="34" />
         <preference name="ForegroundServiceType" value="microphone" />
         <config-file target="AndroidManifest.xml" parent="/manifest">
             <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-            <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
         </config-file>
     </platform>
 </widget>

@@ -16,8 +16,10 @@
     <plugin name="cordova-plugin-camera" spec="^6.0.0" />
     <plugin name="cordova-plugin-device" spec="^2.1.0" />
     <plugin name="cordova-open-native-settings" spec="^1.5.5" />
-    <plugin name="cordova-plugin-local-notification" spec="^0.9.0-beta.2" />
-    <!-- **** समस्याग्रस्त प्लगइन यहाँ से हटा दिया गया है **** -->
+    <plugin name="cordova-plugin-power-optimization" spec="^1.0.1" />
+    
+    <!-- **** समाधान यहाँ है: पुराने बीटा संस्करण को हटाकर नवीनतम संस्करण का उपयोग करें **** -->
+    <plugin name="cordova-plugin-local-notification" />
     
     <platform name="android">
         <allow-intent href="market:*" />

@@ -18,13 +18,12 @@
     ],
     "plugins": {
       "cordova-plugin-androidx-adapter": {},
-      "cordova-plugin-speechrecognition": "git+https://github.com/pbakondy/cordova-plugin-speechrecognition.git",
+      "cordova-plugin-speechrecognition": {},
       "cordova-plugin-background-mode": {},
       "cordova-plugin-camera": {},
       "cordova-plugin-device": {},
       "cordova-open-native-settings": {},
-      "cordova-plugin-local-notification": {},
-      "cordova-plugin-power-optimization": "git+https://github.com/sneas/cordova-plugin-power-optimization.git"
+      "cordova-plugin-local-notification": {}
     }
   }
 }

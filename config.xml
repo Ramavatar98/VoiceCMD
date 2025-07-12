@@ -16,10 +16,10 @@
     <plugin name="cordova-plugin-camera" spec="^6.0.0" />
     <plugin name="cordova-plugin-device" spec="^2.1.0" />
     <plugin name="cordova-open-native-settings" spec="^1.5.5" />
-    <plugin name="cordova-plugin-power-optimization" spec="^1.0.1" />
-    
-    <!-- **** समाधान यहाँ है: पुराने बीटा संस्करण को हटाकर नवीनतम संस्करण का उपयोग करें **** -->
     <plugin name="cordova-plugin-local-notification" />
+    
+    <!-- **** समाधान यहाँ है: Power Optimization प्लगइन को GitHub से इंस्टॉल करें **** -->
+    <plugin name="cordova-plugin-power-optimization" spec="https://github.com/sneas/cordova-plugin-power-optimization.git" />
     
     <platform name="android">
         <allow-intent href="market:*" />

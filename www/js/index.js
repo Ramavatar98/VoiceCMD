@@ -1,7 +1,7 @@
 // --- Global State Variables ---
 let isListening = false;
-let hasPermission = false;
-const NOTIFICATION_ID = 1; // A unique ID for our app's notification
+let hasMicPermission = false;
+const NOTIFICATION_ID = 1; // हमारी सूचना के लिए एक यूनिक ID
 
 // --- App Initialization ---
 document.addEventListener('deviceready', onDeviceReady, false);
@@ -10,40 +10,41 @@ function onDeviceReady() {
     console.log('Device is ready');
     document.getElementById('deviceready').classList.add('ready');
 
-    // --- Permission Handling Sequence ---
-    // First, ask for notifications, then microphone, then guide for overlay.
+    // --- अनुमतियों का सही क्रम ---
+    // 1. सूचनाएं -> 2. माइक्रोफ़ोन -> 3. बैटरी ऑप्टिमाइज़ेशन
     requestNotificationPermission(() => {
-        checkAndRequestMicrophonePermission();
-        requestOverlayPermission();
+        checkAndRequestMicrophonePermission(() => {
+            // माइक्रोफ़ोन की अनुमति मिलने के बाद ही बैटरी ऑप्टिमाइज़ेशन के लिए पूछें
+            if (hasMicPermission) {
+                requestBatteryOptimizationPermission();
+            }
+        });
     });
 
-    // --- Background Mode Configuration ---
+    // --- बैकग्राउंड मोड कॉन्फ़िगरेशन ---
     cordova.plugins.backgroundMode.setDefaults({
         title: 'Voice CMD is Active',
-        text: 'Listening for your commands.',
-        silent: true // Set to true because we will show our own custom notification
+        text: 'Listening for your "शक्ति" commands.',
+        // 'type' को config.xml में सेट किया गया है, जो अधिक विश्वसनीय है
+        silent: true // हम अपनी कस्टम सूचना दिखाएंगे
     });
     cordova.plugins.backgroundMode.enable();
     
-    // This is crucial to keep listening when app goes to background
     cordova.plugins.backgroundMode.on('activate', function() {
-        if(isListening) {
-           // Ensure the listening loop continues
-           setTimeout(listenLoop, 500);
-        }
+        if(isListening) { setTimeout(listenLoop, 500); }
     });
 
-    // --- UI Button Logic ---
+    // --- UI बटन का लॉजिक ---
     const startBtn = document.getElementById('startBtn');
     startBtn.addEventListener('click', () => {
         if (isListening) {
             stopListening();
         } else {
-            if (hasPermission) {
+            if (hasMicPermission) {
                 startContinuousListening();
             } else {
                 alert('Please grant Microphone permission first.');
-                checkAndRequestMicrophonePermission(); // Ask again if not granted
+                checkAndRequestMicrophonePermission();
             }
         }
     });
@@ -52,75 +53,67 @@ function onDeviceReady() {
 // --- Permission Functions ---
 
 function requestNotificationPermission(callback) {
-    cordova.plugins.notification.local.hasPermission(function (granted) {
+    cordova.plugins.notification.local.hasPermission(granted => {
         if (granted) {
             console.log('Notification permission already granted.');
             callback();
         } else {
-            cordova.plugins.notification.local.requestPermission(function (granted) {
-                if (granted) {
-                    console.log('Notification permission granted.');
-                } else {
-                    console.warn('Notification permission denied.');
-                }
-                callback(); // Continue initialization regardless
+            cordova.plugins.notification.local.requestPermission(granted => {
+                console.log(`Notification permission granted: ${granted}`);
+                callback();
             });
         }
     });
 }
 
-function checkAndRequestMicrophonePermission() {
+function checkAndRequestMicrophonePermission(callback) {
     window.plugins.speechRecognition.hasPermission(
-        (granted) => {
+        granted => {
             if (granted) {
-                hasPermission = true;
+                hasMicPermission = true;
                 console.log('Microphone permission is granted.');
             } else {
-                console.log('Requesting microphone permission...');
                 window.plugins.speechRecognition.requestPermission(
-                    () => { 
-                        hasPermission = true; 
-                        console.log('Microphone permission granted successfully.');
-                    },
-                    () => { 
-                        hasPermission = false; 
-                        alert('Microphone permission is required for the app to work.'); 
-                    }
+                    () => { hasMicPermission = true; console.log('Microphone permission granted successfully.'); },
+                    () => { hasMicPermission = false; alert('Microphone permission is required for the app to work.'); }
                 );
             }
+            if (callback) callback();
         },
-        (err) => { console.error('Error checking mic permission: ' + err); }
+        err => console.error('Error checking mic permission: ' + err)
     );
 }
 
-function requestOverlayPermission() {
-    // This plugin can only open settings, it cannot check the permission status.
-    // So, we will guide the user once.
-    alert('For full functionality (like showing alerts from the background), please enable "Display over other apps" for VoiceCMD in the upcoming settings screen.');
-    // Open the specific settings page for the app
-    window.cordova.plugins.settings.open("application_details", 
-        () => console.log('Opened app details settings'),
-        () => console.error('Failed to open app details settings')
+function requestBatteryOptimizationPermission() {
+    cordova.plugins.PowerOptimization.isIgnoringBatteryOptimizations(
+        (isIgnoring) => {
+            if (!isIgnoring) {
+                alert('For the app to run reliably in the background, please allow it to ignore battery optimizations.');
+                cordova.plugins.PowerOptimization.requestOptimizations();
+            } else {
+                console.log('App is already ignoring battery optimizations.');
+            }
+        },
+        (error) => {
+            console.error('Failed to check battery optimization status: ' + error);
+        }
     );
 }
 
 
-// --- Listening Logic Functions ---
+// --- बाकी का लॉजिक पहले जैसा ही है ---
 
 function startContinuousListening() {
-    if (isListening || !hasPermission) return;
+    if (isListening || !hasMicPermission) return;
     isListening = true;
     document.getElementById('status').textContent = "Status: Listening...";
     document.getElementById('startBtn').textContent = "Stop Listening";
-    showRunningNotification('सुन रहा हूँ...'); // Show persistent notification
-    listenLoop(); // Start the loop
+    showRunningNotification('सुन रहा हूँ...');
+    listenLoop();
 }
 
 function listenLoop() {
-    if (!isListening) {
-        console.log("Listen loop stopped.");
-        return;
-    }
+    if (!isListening) return;
     let options = { language: 'hi-IN', matches: 1, showPartial: false };
     window.plugins.speechRecognition.startListening(onResult, onError, options);
 }
@@ -129,61 +122,34 @@ function onResult(matches) {
     const command = matches[0].toLowerCase().trim();
     document.getElementById('result').innerHTML = "<strong>आपने कहा:</strong> " + command;
     parseAndExecuteCommand(command);
-    // Restart the loop for the next command
-    if (isListening) {
-        setTimeout(listenLoop, 500);
-    }
+    if (isListening) setTimeout(listenLoop, 500);
 }
 
 function onError(error) {
-    // Error code 7 on Android is "No Match". We handle it silently.
-    if (error === 7) {
-        console.log("No match, listening again...");
-        if (isListening) {
-           setTimeout(listenLoop, 100);
-        }
+    if (error === 7) { // No Match Error
+        if (isListening) setTimeout(listenLoop, 100);
     } else {
-        // For other more serious errors, log them.
         console.error("Speech recognition error code: ", error);
-        updateNotification('Error! Restarting listener...');
-        // Attempt to restart the loop after a short delay to recover.
-        if (isListening) {
-            setTimeout(listenLoop, 1000);
-        }
+        if (isListening) setTimeout(listenLoop, 1000);
     }
 }
 
 function stopListening() {
-    if (!isListening) return; // Already stopped
+    if (!isListening) return;
     isListening = false;
     window.plugins.speechRecognition.stopListening();
     document.getElementById('status').textContent = "Status: Idle";
     document.getElementById('startBtn').textContent = "Start Listening";
-    clearNotification(); // Remove the persistent notification
-    console.log("Stopped listening by user or command.");
+    clearNotification();
 }
 
-
-// --- Command and Notification Management ---
-
 function parseAndExecuteCommand(command) {
-    console.log("Parsing command: " + command);
-    // The wake-word "शक्ति" must be present
-    if (!command.includes('शक्ति')) {
-        console.log("Wake word 'शक्ति' not found.");
-        return;
-    }
-    
-    updateNotification(`Last command: ${command}`); // Update notification with the command
-
+    if (!command.includes('शक्ति')) return;
+    updateNotification(`Last command: ${command}`);
     if (command.includes('कैमरा खोलो')) {
         navigator.camera.getPicture(() => {}, () => {}, { sourceType: Camera.PictureSourceType.CAMERA });
     } else if (command.includes('नमस्ते बोलो')) {
-        // Using local notification for alert so it works from background
-        cordova.plugins.notification.local.schedule({
-            title: 'Voice CMD',
-            text: 'नमस्ते! मैं आपकी सेवा में हाज़िर हूँ।'
-        });
+        cordova.plugins.notification.local.schedule({ title: 'Voice CMD', text: 'नमस्ते! मैं आपकी सेवा में हाज़िर हूँ।' });
     } else if (command.includes('सो जाओ') || command.includes('बंद हो जाओ')) {
         stopListening();
     }
@@ -195,18 +161,15 @@ function showRunningNotification(text) {
         title: 'Voice CMD is running',
         text: text,
         foreground: true,
-        ongoing: true, // Makes it persistent (user cannot swipe it away)
-        icon: 'res://icon' // A generic way to reference the app icon
+        ongoing: true,
+        icon: 'res://icon'
     });
 }
 
 function updateNotification(text) {
-    cordova.plugins.notification.local.update({
-        id: NOTIFICATION_ID,
-        text: text
-    });
+    cordova.plugins.notification.local.update({ id: NOTIFICATION_ID, text: text });
 }
 
 function clearNotification() {
     cordova.plugins.notification.local.clear(NOTIFICATION_ID);
-}
+         }

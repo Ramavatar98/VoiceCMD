@@ -2,28 +2,21 @@
   "name": "com.example.voicecmd",
   "displayName": "VoiceCMD",
   "version": "1.0.0",
-  "description": "A sample Apache Cordova application that responds to voice commands.",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [
-    "ecosystem:cordova"
-  ],
-  "author": "Apache Cordova Team",
-  "license": "Apache-2.0",
+  // ... (बाकी सब कुछ वही रहेगा) ...
   "cordova": {
     "platforms": [
       "android"
     ],
     "plugins": {
       "cordova-plugin-androidx-adapter": {},
-      "cordova-plugin-speechrecognition": {},
+      "cordova-plugin-speechrecognition": "git+https://github.com/pbakondy/cordova-plugin-speechrecognition.git",
       "cordova-plugin-background-mode": {},
       "cordova-plugin-camera": {},
       "cordova-plugin-device": {},
       "cordova-open-native-settings": {},
-      "cordova-plugin-local-notification": {}
+      "cordova-plugin-local-notification": {},
+      "cordova-plugin-power-optimization": {},
+      "cordova-plugin-background-fetch": {}
     }
   }
 }

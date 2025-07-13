@@ -1,23 +1,55 @@
-// --- Global State Variables and Initialization ---
-// ... (यह पूरा हिस्सा पहले जैसा ही है, कोई बदलाव नहीं) ...
-let isListening = false, hasMicPermission = false, NOTIFICATION_ID = 1;
-let finalTranscript = '', recognitionTimeout, proactiveRestartInterval;
+// --- Global State Variables ---
+let isListening = false;
+let hasMicPermission = false;
+const NOTIFICATION_ID = 1;
+
+// --- Advanced Listening Variables ---
+let finalTranscript = '';
+let recognitionTimeout;
+let proactiveRestartInterval;
+
+// --- App Initialization ---
 document.addEventListener('deviceready', onDeviceReady, false);
 
 function onDeviceReady() {
     console.log('Device is ready');
     document.getElementById('deviceready').classList.add('ready');
+
     requestNotificationPermission(() => {
         checkAndRequestMicrophonePermission(() => {
             if (hasMicPermission) requestBatteryOptimizationPermission();
         });
     });
-    cordova.plugins.backgroundMode.setDefaults({ title: 'Voice CMD is Active', text: 'Listening for "शक्ति" commands.', silent: true });
-    cordova.plugins.backgroundMode.on('activate', () => {
-        cordova.plugins.backgroundMode.disableWebViewOptimizations();
-        if (isListening) { stopListening(); setTimeout(startContinuousListening, 1000); }
+
+    // --- Background Mode Configuration (Most Important Part) ---
+    cordova.plugins.backgroundMode.setDefaults({
+        title: 'Voice CMD is Active',
+        text: 'Listening for "शक्ति" commands.',
+        silent: true
     });
+    
+    // **** यही मुख्य समाधान है ****
+    // जब भी ऐप बैकग्राउंड में जाए, WebView ऑप्टिमाइज़ेशन को अक्षम करें
+    cordova.plugins.backgroundMode.on('activate', () => {
+        console.log('BACKGROUND MODE ACTIVATED: Disabling WebView optimizations.');
+        cordova.plugins.backgroundMode.disableWebViewOptimizations(); 
+        
+        // एक साफ शुरुआत के लिए लिसनर को पुनरारंभ करना अभी भी एक अच्छा विचार है
+        if (isListening) {
+            window.plugins.speechRecognition.stopListening();
+            setTimeout(listenLoop, 1000);
+        }
+    });
+
+    // जब ऐप वापस सामने आए तो इसे फिर से सक्षम किया जा सकता है (वैकल्पिक, लेकिन अच्छा अभ्यास)
+    cordova.plugins.backgroundMode.on('deactivate', () => {
+        console.log('BACKGROUND MODE DEACTIVATED: Re-enabling WebView optimizations.');
+        cordova.plugins.backgroundMode.enableWebViewOptimizations();
+    });
+
     cordova.plugins.backgroundMode.enable();
+    
+    // --- UI Button Logic ---
     const startBtn = document.getElementById('startBtn');
     startBtn.addEventListener('click', () => {
         if (isListening) stopListening();
@@ -27,7 +59,6 @@ function onDeviceReady() {
 }
 
 // --- Listening Logic ---
-// ... (यह पूरा हिस्सा पहले जैसा ही है, कोई बदलाव नहीं) ...
 function startContinuousListening() {
     if (isListening || !hasMicPermission) return;
     isListening = true;
@@ -38,53 +69,38 @@ function startContinuousListening() {
     clearInterval(proactiveRestartInterval);
     proactiveRestartInterval = setInterval(() => {
         if (isListening) {
-            console.log('Proactive Restart: Refreshing listener.');
+            console.log('Proactive Restart: Refreshing the listener.');
             window.plugins.speechRecognition.stopListening();
             setTimeout(listenLoop, 500);
         }
     }, 45000);
 }
 
-function listenLoop() { /* ... पहले जैसा कोड ... */ }
-function onResult(matches) { /* ... पहले जैसा कोड ... */ }
-function onError(error) { /* ... पहले जैसा कोड ... */ }
-function stopListening() { /* ... पहले जैसा कोड ... */ }
-
-
-// --- Command Execution Logic (यहाँ मुख्य बदलाव हैं) ---
-
+// --- Command Execution Logic ---
 function parseAndExecuteCommand(command) {
-    if (!command.includes('शक्ति')) {
-        console.log("Wake word not found in: " + command);
-        return;
-    }
+    if (!command.includes('शक्ति')) return;
     
-    updateNotification(`Last command: ${command}`);
+    updateNotification(`Executing: ${command}`);
 
-    // **** समाधान 1: alert() को नोटिफिकेशन से बदलें ****
-    // यह बैकग्राउंड से मज़बूती से काम करेगा।
     if (command.includes('नमस्ते बोलो')) {
+        // यह अब बैकग्राउंड से तुरंत काम करना चाहिए
         cordova.plugins.notification.local.schedule({
-            id: new Date().getTime(), // हर बार एक यूनिक ID दें
+            id: new Date().getTime(),
             title: 'Voice CMD',
             text: 'नमस्ते! मैं आपकी सेवा में हाज़िर हूँ।'
         });
     } 
-    
-    // **** समाधान 2: कैमरा खोलने से पहले ऐप को सामने लाएं ****
     else if (command.includes('कैमरा खोलो')) {
-        // पहले ऐप को अग्रभूमि में लाएं
+        // यह प्रक्रिया अब अधिक विश्वसनीय होनी चाहिए
         cordova.plugins.backgroundMode.moveToForeground();
-        // फिर, थोड़ी देर बाद कैमरा खोलें ताकि ऐप को सामने आने का समय मिल जाए
         setTimeout(() => {
             navigator.camera.getPicture(
-                () => { console.log('Camera success'); }, 
-                (err) => { console.error('Camera error: ' + err); }, 
+                () => console.log('Camera success'), 
+                (err) => console.error('Camera error: ' + err), 
                 { sourceType: Camera.PictureSourceType.CAMERA }
             );
-        }, 500); // 0.5 सेकंड की देरी
+        }, 500);
     } 
-    
     else if (command.includes('सो जाओ') || command.includes('बंद हो जाओ')) {
         stopListening();
     }

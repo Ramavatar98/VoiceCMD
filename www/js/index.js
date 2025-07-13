@@ -4,24 +4,41 @@ let hasMicPermission = false;
 const NOTIFICATION_ID = 1;
 
 // --- उन्नत सुनने के लिए वेरिएबल्स ---
-let finalTranscript = ''; // अंतिम कमांड को स्टोर करने के लिए
-let recognitionTimeout; // कमांड के अंत का पता लगाने के लिए टाइमर
+let finalTranscript = '';
+let recognitionTimeout;
+let proactiveRestartInterval; // कनेक्शन को ताज़ा रखने के लिए
 
 // --- App Initialization ---
 document.addEventListener('deviceready', onDeviceReady, false);
 
 function onDeviceReady() {
-    // ... (यह हिस्सा पहले जैसा ही है) ...
     console.log('Device is ready');
     document.getElementById('deviceready').classList.add('ready');
+
     requestNotificationPermission(() => {
         checkAndRequestMicrophonePermission(() => {
             if (hasMicPermission) requestBatteryOptimizationPermission();
         });
     });
-    cordova.plugins.backgroundMode.setDefaults({ title: 'Voice CMD is Active', text: 'Listening for commands.', silent: true });
+
+    cordova.plugins.backgroundMode.setDefaults({
+        title: 'Voice CMD is Active',
+        text: 'Listening for "शक्ति" commands.',
+        silent: true
+    });
+    
+    cordova.plugins.backgroundMode.on('activate', () => {
+        cordova.plugins.backgroundMode.disableWebViewOptimizations(); 
+        console.log('Background mode activated.');
+        // जब ऐप बैकग्राउंड में जाए, तो एक पूर्ण पुनरारंभ करें
+        if(isListening) {
+            console.log('App moved to background, performing a full listener restart.');
+            stopListening();
+            setTimeout(startContinuousListening, 1000); // 1 सेकंड बाद फिर से शुरू करें
+        }
+    });
     cordova.plugins.backgroundMode.enable();
-    cordova.plugins.backgroundMode.on('activate', () => { if(isListening) { setTimeout(listenLoop, 500); } });
+    
     const startBtn = document.getElementById('startBtn');
     startBtn.addEventListener('click', () => {
         if (isListening) stopListening();
@@ -31,79 +48,63 @@ function onDeviceReady() {
 }
 
 
-// --- Listening Logic (यहाँ मुख्य बदलाव हैं) ---
+// --- Listening Logic (प्रोएक्टिव रीस्टार्ट के साथ) ---
 
 function startContinuousListening() {
     if (isListening || !hasMicPermission) return;
     isListening = true;
-    document.getElementById('status').textContent = "Status: Listening intelligently...";
+    document.getElementById('status').textContent = "Status: Proactive listening...";
     document.getElementById('startBtn').textContent = "Stop Listening";
-    showRunningNotification('स्मार्ट लिसनिंग सक्रिय है...');
+    showRunningNotification('प्रोएक्टिव लिसनिंग सक्रिय है...');
     listenLoop();
+
+    // **** प्रोएक्टिव रीस्टार्ट टाइमर शुरू करें ****
+    // हर 45 सेकंड में, हम कनेक्शन को ताज़ा करने के लिए लिसनर को पूरी तरह से पुनरारंभ करेंगे।
+    clearInterval(proactiveRestartInterval);
+    proactiveRestartInterval = setInterval(() => {
+        if (isListening) {
+            console.log('Proactive Restart: Refreshing the listener to maintain background access.');
+            window.plugins.speechRecognition.stopListening();
+            setTimeout(listenLoop, 500); // 0.5 सेकंड बाद फिर से शुरू करें
+        }
+    }, 45000); // 45 सेकंड
 }
 
 function listenLoop() {
     if (!isListening) return;
-
-    // **** स्मार्ट लिसनिंग के लिए नए विकल्प ****
-    let options = {
-        language: 'hi-IN',
-        showPartial: true, // आंशिक परिणाम चालू करें
-        showPopup: false
-    };
+    let options = { language: 'hi-IN', showPartial: true, showPopup: false };
     window.plugins.speechRecognition.startListening(onResult, onError, options);
 }
 
-// परिणाम मिलने पर यह नया फंक्शन चलेगा
 function onResult(matches) {
     if (!matches || matches.length === 0) return;
-
-    // टाइमर को रीसेट करें क्योंकि उपयोगकर्ता अभी भी बोल रहा है
     clearTimeout(recognitionTimeout);
-
-    // आंशिक परिणामों को इकट्ठा करें
     finalTranscript = matches[0];
     document.getElementById('result').innerHTML = `<strong>सुन रहा हूँ...</strong> ${finalTranscript}`;
-
-    // एक डीबाउंस टाइमर सेट करें। अगर उपयोगकर्ता 1.5 सेकंड के लिए चुप रहता है,
-    // तो हम मान लेंगे कि कमांड पूरा हो गया है।
     recognitionTimeout = setTimeout(() => {
-        console.log(`Final command received: ${finalTranscript}`);
+        console.log(`Final command: ${finalTranscript}`);
         document.getElementById('result').innerHTML = `<strong>आपने कहा:</strong> ${finalTranscript}`;
         parseAndExecuteCommand(finalTranscript.toLowerCase().trim());
-        
-        // कमांड प्रोसेस करने के बाद, लिसनर को रीसेट करें
         finalTranscript = '';
-        if (isListening) {
-            // तुरंत फिर से सुनने के बजाय, थोड़ा रुकें
-            setTimeout(listenLoop, 500);
-        }
-    }, 1500); // 1.5 सेकंड का ठहराव
+        // यहाँ लूप को पुनरारंभ न करें, onError या proactiveRestart उसे संभाल लेगा
+    }, 1500);
 }
 
 function onError(error) {
-    // एरर आने पर टाइमर साफ़ करें
     clearTimeout(recognitionTimeout);
-
-    // No Match (7) या No speech (6) एरर पर, चुपचाप फिर से शुरू करें
-    if (error === 7 || error === 6) {
-        if (isListening) {
-            // सुनिश्चित करें कि हम अगले कमांड के लिए तैयार हैं
-            finalTranscript = '';
-            setTimeout(listenLoop, 250);
-        }
-    } else {
-        console.error("Speech recognition error code: ", error);
-        if (isListening) {
-            setTimeout(listenLoop, 1500);
-        }
+    console.log(`Listener error code: ${error}. Restarting.`);
+    // किसी भी त्रुटि पर, बस थोड़ी देर बाद फिर से सुनने का प्रयास करें
+    if (isListening) {
+        finalTranscript = '';
+        setTimeout(listenLoop, 1000); // 1 सेकंड की देरी
     }
 }
 
 function stopListening() {
     if (!isListening) return;
     isListening = false;
-    clearTimeout(recognitionTimeout); // टाइमर बंद करें
+    clearInterval(proactiveRestartInterval); // प्रोएक्टिव रीस्टार्ट टाइमर बंद करें
+    clearTimeout(recognitionTimeout);
     window.plugins.speechRecognition.stopListening();
     document.getElementById('status').textContent = "Status: Idle";
     document.getElementById('startBtn').textContent = "Start Listening";
@@ -112,16 +113,6 @@ function stopListening() {
 
 
 // --- बाकी सभी फंक्शन पहले जैसे ही रहेंगे ---
-
-function requestNotificationPermission(callback) { /* ... पहले जैसा कोड ... */ }
-function checkAndRequestMicrophonePermission(callback) { /* ... पहले जैसा कोड ... */ }
-function requestBatteryOptimizationPermission() { /* ... पहले जैसा कोड ... */ }
-function parseAndExecuteCommand(command) { /* ... पहले जैसा कोड ... */ }
-function showRunningNotification(text) { /* ... पहले जैसा कोड ... */ }
-function updateNotification(text) { /* ... पहले जैसा कोड ... */ }
-function clearNotification() { /* ... पहले जैसा कोड ... */ }
-
-// --- Placeholders for unchanged functions ---
 function requestNotificationPermission(callback) { cordova.plugins.notification.local.hasPermission(granted => { if (granted) { callback(); } else { cordova.plugins.notification.local.requestPermission(() => callback()); } }); }
 function checkAndRequestMicrophonePermission(callback) { window.plugins.speechRecognition.hasPermission(granted => { hasMicPermission = granted; if (!granted) { window.plugins.speechRecognition.requestPermission(() => { hasMicPermission = true; }, () => { hasMicPermission = false; alert('Microphone permission is required.'); }); } if (callback) callback(); }, err => console.error('Error checking mic permission: ' + err)); }
 function requestBatteryOptimizationPermission() { cordova.plugins.PowerOptimization.isIgnoringBatteryOptimizations((isIgnoring) => { if (!isIgnoring) { alert('For the app to run reliably in the background, please allow it to ignore battery optimizations.'); cordova.plugins.PowerOptimization.requestOptimizations(); } }); }

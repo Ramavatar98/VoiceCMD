@@ -23,7 +23,7 @@ jobs:
       run: |
         cd keyhunt/keysubtrac
         make
-        timeout 60s python3 p.py  # सिर्फ 60 सेकंड तक ही चलेगा
+        python3 p.py  # सिर्फ 60 सेकंड तक ही चलेगा
 
     - name: keyhunt Build करें
       run: |

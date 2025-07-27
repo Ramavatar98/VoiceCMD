@@ -35,8 +35,14 @@ jobs:
         cd keyhunt
         timeout 50 ./keyhunt -m address -f keysubtrac/1.txt -r 1:ffffffffffffffffffffffff -l compress -q -s 10 -t 8 || echo 
 
+    - name: 1.txt चेक करें
+      run: |
+        cd keyhunt
+        cd keysubtrac
+        cat 1.txt
+        
     - name: KEYFOUNDKEYFOUND.txt चेक करें
       run: |
         cd keyhunt
-        cat KEYFOUNDKEYFOUND.txt || echo "कोई key नहीं मिली"
+        cat KEYFOUNDKEYFOUND.txt
         

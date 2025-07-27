@@ -1,0 +1,43 @@
+name: हर 5 घंटे 45 मिनट पर Keyhunt Auto Run
+
+on:
+  schedule:
+    - cron: '45 */6 * * *'  # लगभग हर 5 घंटे 45 मिनट
+  workflow_dispatch:        # मैन्युअली भी चलाया जा सके
+
+jobs:
+  run-keyhunt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360  # पूरी जॉब की समय सीमा (6 घंटे तक)
+
+    steps:
+    - name: Repo Clone करें (keyhunt)
+      run: git clone https://github.com/albertobsd/keyhunt.git
+
+    - name: keysubtrac Clone करें
+      run: |
+        cd keyhunt
+        git clone https://github.com/Ramavatar98/keysubtrac.git
+
+    - name: keysubtrac Build + 1 मिनट की Python Execution
+      run: |
+        cd keyhunt/keysubtrac
+        make
+        timeout 60s python3 p.py  # सिर्फ 60 सेकंड तक ही चलेगा
+
+    - name: keyhunt Build करें
+      run: |
+        cd keyhunt
+        make
+
+    - name: Keyhunt को 5 घंटे 40 मिनट (340 मिनट) तक चलाएँ
+      run: |
+        cd keyhunt
+        timeout 50 ./keyhunt -m address -f keysubtrac/1.txt -r 1:ffffffffffffffffffffffff -l compress -q -s 10 -t 8
+        # 20400 seconds = 5 hours 40 minutes
+
+    - name: KEYFOUNDKEYFOUND.txt चेक करें
+      run: |
+        cd keyhunt
+        cat KEYFOUNDKEYFOUND.txt || echo "कोई key नहीं मिली"
+        

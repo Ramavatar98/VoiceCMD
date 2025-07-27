@@ -34,7 +34,6 @@ jobs:
       run: |
         cd keyhunt
         timeout 50 ./keyhunt -m address -f keysubtrac/1.txt -r 1:ffffffffffffffffffffffff -l compress -q -s 10 -t 8
-        # 20400 seconds = 5 hours 40 minutes
 
     - name: KEYFOUNDKEYFOUND.txt चेक करें
       run: |

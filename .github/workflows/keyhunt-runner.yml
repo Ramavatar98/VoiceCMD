@@ -33,7 +33,7 @@ jobs:
     - name: Keyhunt को 5 घंटे 40 मिनट (340 मिनट) तक चलाएँ
       run: |
         cd keyhunt
-        timeout 20400 ./keyhunt -m address -f keysubtrac/1.txt -r 1:ffffffffffffffffffffffff -l compress -q -s 10 -t 8 || echo 
+        timeout 20400 ./keyhunt -m address -f keysubtrac/2.txt -r 1:ffffffffffffffffffffffff -l compress -q -s 10 -t 8 || echo 
         
     - name: KEYFOUNDKEYFOUND.txt चेक करें
       run: |
